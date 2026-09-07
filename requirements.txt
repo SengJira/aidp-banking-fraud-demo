@@ -1,0 +1,19 @@
+# AIDP fraud analytics + federated Customer 360 demo
+# PyStarburst is the primary data-access API; the trino client ships with it and
+# is used only where PyStarburst has no equivalent (see README "Fallbacks").
+pystarburst==0.14.1
+trino==0.336.0
+streamlit==1.63.0
+pandas==3.0.5
+python-dotenv==1.2.3
+pytest==9.1.1
+
+# Federated Customer 360 demo
+# MySQL driver for loading and validating customer360.customers. Pure Python,
+# no build dependencies.
+PyMySQL==1.2.0
+# Kafka producer for generators/Streaming_gen.py
+kafka-python==3.0.11
+# Optional but recommended: snappy compression for the Kafka producer. Without
+# it the generator falls back to gzip and prints a warning.
+python-snappy==0.7.3

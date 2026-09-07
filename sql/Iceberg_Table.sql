@@ -1,13 +1,13 @@
-CREATE SCHEMA IF NOT EXISTS banking_iceberg.banking
+CREATE SCHEMA IF NOT EXISTS js_financial_ice.banking
 WITH (
-    location = 's3://aidp-s3ds/warehouse/banking'
+    location = 's3://js-demo/warehouse/banking'
 );
 
 -- 1. Payment Transactions
-CREATE TABLE IF NOT EXISTS banking_iceberg.banking.payment_transactions (
+CREATE TABLE IF NOT EXISTS js_financial_ice.banking.payment_transactions (
     event_id            VARCHAR,
     event_type          VARCHAR,
-    timestamp           TIMESTAMP(6),
+    timestamp           TIMESTAMP(6) WITH TIME ZONE,
     transaction_id      VARCHAR,
     account_id          VARCHAR,
     amount              DOUBLE,
@@ -22,20 +22,20 @@ CREATE TABLE IF NOT EXISTS banking_iceberg.banking.payment_transactions (
     is_international    BOOLEAN,
     customer_tier       VARCHAR,
     risk_score          DOUBLE,
-    ingested_at         TIMESTAMP(6),
+    ingested_at         TIMESTAMP(6) WITH TIME ZONE,
     event_date          DATE
 )
 WITH (
     format = 'PARQUET',
     partitioning = ARRAY['event_date', 'city'],
     sorted_by = ARRAY['timestamp DESC NULLS LAST'],
-    location = 's3://aidp-s3ds/warehouse/banking/payment_transactions'
+    location = 's3://js-demo/warehouse/banking/payment_transactions'
 );
 
 -- 2. Payment Aggregates
-CREATE TABLE IF NOT EXISTS banking_iceberg.banking.payment_agg (
-    window_start        TIMESTAMP(6),
-    window_end          TIMESTAMP(6),
+CREATE TABLE IF NOT EXISTS js_financial_ice.banking.payment_agg (
+    window_start        TIMESTAMP(6) WITH TIME ZONE,
+    window_end          TIMESTAMP(6) WITH TIME ZONE,
     city                VARCHAR,
     channel             VARCHAR,
     merchant_category   VARCHAR,
@@ -52,17 +52,17 @@ CREATE TABLE IF NOT EXISTS banking_iceberg.banking.payment_agg (
 WITH (
     format = 'PARQUET',
     partitioning = ARRAY['event_date', 'city'],
-    location = 's3://aidp-s3ds/warehouse/banking/payment_agg'
+    location = 's3://js-demo/warehouse/banking/payment_agg'
 );
 
 -- 3. Fraud Alerts
-CREATE TABLE IF NOT EXISTS banking_iceberg.banking.fraud_alerts (
+CREATE TABLE IF NOT EXISTS js_financial_ice.banking.fraud_alerts (
     event_id        VARCHAR,
     event_type      VARCHAR,
-    timestamp       TIMESTAMP(6),
+    timestamp       TIMESTAMP(6) WITH TIME ZONE,
     account_id      VARCHAR,
     fraud_type      VARCHAR,
-    ml_scroe        DOUBLE,
+    ml_score        DOUBLE,
     action          VARCHAR,
     case_id         VARCHAR,
     event_date      DATE
@@ -70,14 +70,14 @@ CREATE TABLE IF NOT EXISTS banking_iceberg.banking.fraud_alerts (
 WITH (
     format = 'PARQUET',
     partitioning = ARRAY['event_date', 'fraud_type'],
-    location = 's3://aidp-s3ds/warehouse/banking/fraud_alerts'
+    location = 's3://js-demo/warehouse/banking/fraud_alerts'
 );
 
 -- 4. AML Alerts
-CREATE TABLE IF NOT EXISTS banking_iceberg.banking.aml_alerts (
+CREATE TABLE IF NOT EXISTS js_financial_ice.banking.aml_alerts (
     event_id        VARCHAR,
     event_type      VARCHAR,
-    timestamp       TIMESTAMP(6),
+    timestamp       TIMESTAMP(6) WITH TIME ZONE,
     account_id      VARCHAR,
     alert_type      VARCHAR,
     risk_band       VARCHAR,
@@ -88,30 +88,31 @@ CREATE TABLE IF NOT EXISTS banking_iceberg.banking.aml_alerts (
 WITH (
     format = 'PARQUET',
     partitioning = ARRAY['event_date', 'risk_band'],
-    location = 's3://aidp-s3ds/warehouse/banking/aml_alerts'
+    location = 's3://js-demo/warehouse/banking/aml_alerts'
 );
 
 -- 5. Customer Events
-CREATE TABLE IF NOT EXISTS banking_iceberg.banking.customer_events (
+CREATE TABLE IF NOT EXISTS js_financial_ice.banking.customer_events (
     event_id        VARCHAR,
     event_type      VARCHAR,
-    timestamp       TIMESTAMP(6),
+    timestamp       TIMESTAMP(6) WITH TIME ZONE,
     account_id      VARCHAR,
     channel         VARCHAR,
     auth_method     VARCHAR,
     login_success   BOOLEAN,
+    new_device      BOOLEAN,
     event_date      DATE
 )
 WITH (
     format = 'PARQUET',
     partitioning = ARRAY['event_date'],
-    location = 's3://aidp-s3ds/warehouse/banking/customer_events'
+    location = 's3://js-demo/warehouse/banking/customer_events'
 );
 
 
 
-SELECT * FROM "banking_iceberg"."banking"."payment_transactions" LIMIT 10;
+SELECT * FROM "js_financial_ice"."banking"."payment_transactions" LIMIT 10;
 
-select count(*) from "banking_iceberg"."banking"."payment_transactions";
+select count(*) from "js_financial_ice"."banking"."payment_transactions";
 
-SELECT * FROM "banking_iceberg"."banking"."fraud_alerts" LIMIT 10;
+SELECT * FROM "js_financial_ice"."banking"."fraud_alerts" LIMIT 10;

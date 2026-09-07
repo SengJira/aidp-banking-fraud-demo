@@ -1,4 +1,29 @@
 __pycache__/
 *.py[cod]
 .ipynb_checkpoints/
+venv/
+.venv/
+dist/
+.pytest_cache/
+
+.ruff_cache/
+
+# Credentials - never commit
 .env
+.env.*
+!.env.example
+docker/mysql/.env
+*.pem
+*.p12
+secrets.*
+# Real catalog properties hold the starburst_ro password; only the
+# *.properties.example template is committed.
+catalogs/*.properties
+
+# Generated synthetic data (reproducible from scripts/generate_customer360.py)
+data/customer360.csv
+data/customer_accounts.csv
+
+# Vendored AIDP CLI (24 MB tarball + unpacked jars) — install separately
+dell-data-processing-engine/
+dell-data-processing-engine-*.tar.gz

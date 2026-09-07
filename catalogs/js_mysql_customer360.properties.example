@@ -1,0 +1,34 @@
+# Starburst / AIDP catalog: js_mysql_customer360
+#
+# Template for the AIDP administrator. Copy to the coordinator's catalog
+# directory as `js_mysql_customer360.properties` (or paste the equivalent fields
+# into the AIDP UI), replace __STARBURST_RO_PASSWORD__ with the value from
+# docker/mysql/.env (MYSQL_STARBURST_PASSWORD), then reload catalogs.
+#
+# This file is committed with a PLACEHOLDER only. Never commit the real password.
+
+connector.name=mysql
+
+# 172.18.1.80 is the existing demo host that also runs the Kafka broker; no new
+# IP is allocated. It must be reachable on TCP 3306 from every AIDP worker node.
+# Do NOT append a database name here - the connector exposes MySQL databases as
+# Trino schemas, so `customer360` becomes the schema in
+# js_mysql_customer360.customer360.customers.
+connection-url=jdbc:mysql://172.18.1.80:3306
+
+# Dedicated read-only account (SELECT on customer360 only). Never use root.
+connection-user=starburst_ro
+connection-password=__STARBURST_RO_PASSWORD__
+
+# --- Optional / troubleshooting -------------------------------------------
+# The account uses mysql_native_password, so public-key retrieval is not
+# needed. If you switch it to caching_sha2_password over a plaintext link,
+# append: ?allowPublicKeyRetrieval=true
+#
+# The MySQL 8 container generates a self-signed server certificate, so
+# Connector/J's default sslMode=PREFERRED negotiates TLS opportunistically.
+# If that fails in your lab, append: ?sslMode=DISABLED
+#
+# Helps the cost-based optimiser choose a sensible federated join strategy:
+# case-insensitive-name-matching=false
+# join-pushdown.strategy=AUTOMATIC
