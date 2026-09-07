@@ -29,7 +29,9 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import os
 import random
+import signal
 import sys
 import threading
 import time
@@ -429,6 +431,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Kafka compression codec; falls back to gzip if unavailable",
     )
     parser.add_argument(
+        "--pid-file",
+        default=None,
+        help="Write this process's PID here, so it can be stopped reliably with "
+        "`kill -TERM $(cat <file>)`. Removed on clean exit.",
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Generate and report events without connecting to Kafka",
@@ -505,12 +513,43 @@ def main(argv: list[str] | None = None) -> int:
     for thread in threads:
         thread.start()
 
-    print(f"[BankingProducer] Running against {args.bootstrap_server} - Ctrl+C to stop")
+    # Shut down cleanly on both SIGTERM and SIGINT.
+    #
+    # Installing a SIGINT handler explicitly matters: when this script is started
+    # as a background job from a NON-interactive shell (nohup ... &), bash sets
+    # SIGINT to SIG_IGN for the child, Python inherits that and never installs
+    # its default KeyboardInterrupt handler - so `kill -INT` is silently ignored
+    # and only SIGTERM (an ungraceful kill) worked. signal.signal() overrides the
+    # inherited SIG_IGN, so both signals now drain the producer and print the
+    # final report.
+    def _request_stop(signum, _frame) -> None:
+        print(
+            f"\n[BankingProducer] Received {signal.Signals(signum).name}, draining...",
+            flush=True,
+        )
+        stop.set()
+
+    for _sig in (signal.SIGTERM, signal.SIGINT):
+        signal.signal(_sig, _request_stop)
+
+    # A PID file avoids the usual guessing games: `pgrep -f Streaming_gen` also
+    # matches the shell that launched it, and `$!` can point at a wrapper rather
+    # than the interpreter.
+    pid_file = Path(args.pid_file) if args.pid_file else None
+    if pid_file:
+        pid_file.parent.mkdir(parents=True, exist_ok=True)
+        pid_file.write_text(f"{os.getpid()}\n", encoding="utf-8")
+
+    print(
+        f"[BankingProducer] Running against {args.bootstrap_server} (pid {os.getpid()}) - "
+        "Ctrl+C, or `kill <pid>`, to stop",
+        flush=True,
+    )
     deadline = time.time() + args.duration if args.duration else None
     try:
-        while not (deadline and time.time() >= deadline):
+        while not stop.is_set() and not (deadline and time.time() >= deadline):
             time.sleep(0.5)
-    except KeyboardInterrupt:
+    except KeyboardInterrupt:  # foreground Ctrl+C before the handler is installed
         pass
     finally:
         stop.set()
@@ -518,8 +557,10 @@ def main(argv: list[str] | None = None) -> int:
             thread.join(timeout=2)
         producer.flush()
         producer.close(timeout=5)
-        print("\n[BankingProducer] Stopped")
-        print(stats.report())
+        if pid_file:
+            pid_file.unlink(missing_ok=True)
+        print("\n[BankingProducer] Stopped", flush=True)
+        print(stats.report(), flush=True)
     return 0
 
 

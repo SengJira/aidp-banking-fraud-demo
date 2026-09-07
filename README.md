@@ -3,7 +3,9 @@
 > **Federated Customer 360 demo:** the app also has a second page that joins
 > MySQL customer master data with the Iceberg banking tables in a single
 > Starburst query, without copying either side. Setup, SQL and troubleshooting
-> are in [docs/FEDERATED_QUERY_DEMO.md](docs/FEDERATED_QUERY_DEMO.md).
+> are in [docs/FEDERATED_QUERY_DEMO.md](docs/FEDERATED_QUERY_DEMO.md), and the
+> day-to-day start/stop procedure for the Kafka generator and Spark streaming
+> jobs is in [docs/RUNBOOK.md](docs/RUNBOOK.md).
 
 A Streamlit application that connects securely to a Dell AI Data Platform (AIDP /
 Starburst Enterprise) endpoint with **PyStarburst** and answers a fixed,

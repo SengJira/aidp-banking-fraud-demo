@@ -757,3 +757,20 @@ def test_live_starburst_user_is_read_only():
                 cursor.execute("DELETE FROM customers WHERE customer_id = 'nope'")
     finally:
         connection.close()
+
+
+def test_generator_exposes_graceful_shutdown_options():
+    """--pid-file and --compression must be available for the runbook flow.
+
+    The signal handling itself (SIGTERM/SIGINT draining the producer) needs a
+    live Kafka connection, so it is verified manually - see docs/RUNBOOK.md.
+    """
+    parser = gen.build_parser()
+    args = parser.parse_args(["--pid-file", "/tmp/x.pid", "--compression", "gzip"])
+    assert args.pid_file == "/tmp/x.pid"
+    assert args.compression == "gzip"
+    # Defaults must keep the previous behaviour.
+    defaults = parser.parse_args([])
+    assert defaults.pid_file is None
+    assert defaults.compression == "snappy"
+    assert defaults.unknown_rate == gen.DEFAULT_UNKNOWN_RATE

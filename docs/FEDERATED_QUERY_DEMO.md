@@ -257,6 +257,10 @@ export DDPE_INSECURE=1
 first restart** — see the troubleshooting entry "Streams run but write zero
 rows".
 
+Day-to-day start/stop procedure, including how to stop the generator cleanly
+and how to spot the offset gap before it wastes an hour, is in
+[RUNBOOK.md](RUNBOOK.md).
+
 ---
 
 ## 9. AIDP MySQL catalog configuration
